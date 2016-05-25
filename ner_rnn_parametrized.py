@@ -84,7 +84,7 @@ if __name__ == "__main__":
     if gold_data == "brown":
         data = brown.tagged_sents(tagset='universal') # Get the Brown POS-tagged corpus from nltk
     else:
-        data, pos_tags = BTBReader.get_tagged_sentences(gold_data, False, False)
+        data, pos_tags = BTBReader.get_tagged_sentences(gold_data)
     #valid_data_list = sorted(data[:5000], key=len) # Optionally, sort the sentences by length
     valid_data_list = data[:1000]
     #test_data_list = sorted(data[5000:10000], key=len)
