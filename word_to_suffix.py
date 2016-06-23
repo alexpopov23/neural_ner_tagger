@@ -1,5 +1,17 @@
 import string
 
+def get_case_vector (word):
+
+    if word.istitle():
+        return [1.0, 0.0, 0.0, 0.0]
+    if word.isupper():
+        return [0.0, 1.0, 0.0, 0.0]
+    if word.islower():
+        return [0.0, 0.0, 1.0, 0.0]
+    if word in string.punctuation:
+        return [0.0, 0.0, 0.0, 1.0]
+    return [0.0, 0.0, 0.0, 0.0]
+
 def get_suffix (word):
 
     title, isAllCaps, isLower, isDigit = False, False, False, False

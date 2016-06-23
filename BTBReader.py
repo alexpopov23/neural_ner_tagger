@@ -1,6 +1,4 @@
 import os
-import xml.etree.ElementTree as ET
-
 
 def get_tagged_sentences(input_folder):
 
@@ -20,7 +18,7 @@ def get_tagged_sentences(input_folder):
                 if len(fields) != 2:
                     continue
                 word, tag = fields
-                tag = tag.strip()
+                tag = tag.strip()[0]
                 tagged_sentence.append((word, tag))
                 pos_tags.add(tag)
             tagged_sentences.append(tagged_sentence)

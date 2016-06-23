@@ -5,7 +5,8 @@ import BTBReader
 import argparse
 from tensorflow.models.rnn import rnn, rnn_cell
 from nltk.corpus import brown
-from word_to_suffix import get_suffix
+from word_to_suffix import get_suffix, get_case_vector
+from random import shuffle
 
 
 if __name__ == "__main__":
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     seq_width = int(args.seq_width) # Max sentence length (longer sentences are cut to this length)
     n_hidden = int(args.n_hidden) # Number of features/neurons in the hidden layer
     n_classes = int(args.n_classes) # Number of tags in the gold corpus
-    embedding_size = word_embedding_size + suffix_embedding_size
+    embedding_size = word_embedding_size + suffix_embedding_size + 4
     if embedding_size == 0:
         print "No embedding model given as parameter!"
         exit(1)
@@ -86,6 +87,7 @@ if __name__ == "__main__":
     else:
         data, pos_tags = BTBReader.get_tagged_sentences(gold_data)
     #valid_data_list = sorted(data[:5000], key=len) # Optionally, sort the sentences by length
+    shuffle(data)
     valid_data_list = data[:1000]
     #test_data_list = sorted(data[5000:10000], key=len)
     test_data_list = data[1000:2000]
@@ -177,7 +179,7 @@ if __name__ == "__main__":
                 sent_padded = [np.concatenate((embeddings[word_to_embedding[word.lower().encode("utf8")]] if word.lower().encode("utf8") in word_to_embedding
                                else embeddings[word_to_embedding["UNK"]],
                                            suff_embeddings[suff_to_embedding[get_suffix(word).encode("utf8")]] if get_suffix(word).encode("utf8") in suff_to_embedding
-                               else suff_embeddings[suff_to_embedding["UNK"]])) for word,_ in sent] \
+                               else suff_embeddings[suff_to_embedding["UNK"]], get_case_vector(word))) for word,_ in sent] \
                               + (seq_width-len(sent)) * [empty_embedding]
             elif args.use_word_embeddings:
                 sent_padded = [embeddings[word_to_embedding[word.lower().encode("utf8")]] if word.lower().encode("utf8") in word_to_embedding
@@ -320,9 +322,9 @@ if __name__ == "__main__":
                 continue
             # If label is "O", disregard true positives but count false positives
             if reshaped_labels[i][outside_ner] == 1:
-                if max(predictions[i]) != outside_ner:
+                if np.argmax(predictions[i]) != outside_ner:
                     false_positives+=1
-                    continue
+                continue
             if np.argmax(reshaped_labels[i]) == np.argmax(predictions[i]):
                 true_positives+=1
             else:
@@ -349,11 +351,11 @@ if __name__ == "__main__":
             if (step % 50 == 0):
               print 'Minibatch loss at step ' + str(step) + ': ' + str(l)
               min_prec, min_rec, min_f1 = accuracy(predictions, batch_labels)
-              print 'Minibatch precision: ' + str(min_prec)[:4] + '; minibatch recall: ' + str(min_rec)[:4]\
-                    + '; minibatch f-1: ' + str(min_f1)[:4]
+              print 'Minibatch precision: ' + str(min_prec*100)[:5] + '%; minibatch recall: ' + str(min_rec*100)[:5]\
+                    + '%; minibatch f-1: ' + str(min_f1*100)[:5] + "%"
               val_prec, val_rec, val_f1 = accuracy(valid_prediction.eval(), valid_labels)
-              print 'Validation precision: ' + str(val_prec)[:4] + '; validation recall: ' + str(val_rec)[:4]\
-                    + '; validation f-1: ' + str(val_f1)[:4]
+              print 'Validation precision: ' + str(val_prec*100)[:5] + '%; validation recall: ' + str(val_rec*100)[:5]\
+                    + '%; validation f-1: ' + str(val_f1*100)[:5] + "%"
         test_prec, test_rec, test_f1 = accuracy(test_prediction.eval(), test_labels)
-        print 'Test precision: ' + str(test_prec)[:4] + '; test recall: ' + str(test_rec)[:4] \
-              + '; test f-1: ' + str(test_f1)[:4]
+        print 'Test precision: ' + str(test_prec*100)[:5] + '%; test recall: ' + str(test_rec*100)[:5] \
+              + '%; test f-1: ' + str(test_f1*100)[:5] + "%"
